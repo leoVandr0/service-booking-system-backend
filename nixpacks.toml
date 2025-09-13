@@ -1,0 +1,8 @@
+[phases.build]
+cmds = ["./mvnw clean package -Dspring.profiles.active=prod"]
+
+[phases.install]
+cmds = ["chmod +x ./mvnw"]
+
+[variables]
+MAVEN_OPTS = "-Xmx1024m"
