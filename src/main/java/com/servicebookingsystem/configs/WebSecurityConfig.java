@@ -14,6 +14,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -23,35 +28,10 @@ public class WebSecurityConfig {
     @Autowired
     private JwtRequestFilter requestFilter;
 
-
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        return http
-//                .csrf(csrf -> csrf.disable())
-//                .sessionManagement(session -> session
-//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                )
-//                .authorizeHttpRequests(auth -> auth
-//                          .requestMatchers(
-//                                "/api/v1/authenticate",
-//                                "/api/v1/company/sign-up",
-//                                "/api/v1/client/sign-up",
-//                                "/api/v1/ads",
-//                                "/api/v1/search/**",
-//                                "/error",
-//                                "/favicon.ico"
-//                        ).permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//                .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class)
-//                .build();
-//    }
-
-
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/authenticate",
@@ -59,13 +39,11 @@ public class WebSecurityConfig {
                                 "/api/v1/client/sign-up",
                                 "/api/v1/ads",
                                 "/api/v1/search/**",
-                                "/error",                  // ✅ Allow access to error page
-                                "/favicon.ico",            // (optional)
-                                "/actuator/**"            // (optional for actuator monitoring)
-
+                                "/error",
+                                "/favicon.ico",
+                                "/actuator/**"
                         ).permitAll()
-                        .requestMatchers("/api/v1/company/ad/**", "/api/v1/company/ads/**").permitAll() //hasAuthority("ROLE_COMPANY")
-
+                        .requestMatchers("/api/v1/company/ad/**", "/api/v1/company/ads/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
@@ -76,8 +54,19 @@ public class WebSecurityConfig {
                 .build();
     }
 
-
-
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
@@ -88,5 +77,4 @@ public class WebSecurityConfig {
     public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
-
 }

@@ -22,7 +22,7 @@ public class Ad {
     private Double price;
 
     @Lob
-    @Column(columnDefinition = "longblob")
+    @Column(columnDefinition = "bytea")
     private byte[] img;
 
 
@@ -47,16 +47,3 @@ public class Ad {
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

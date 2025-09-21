@@ -20,11 +20,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-
-
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/v1")
+@CrossOrigin
 @RequiredArgsConstructor
 public class AuthenticationController {
     @Autowired
@@ -32,7 +30,6 @@ public class AuthenticationController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
-
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
@@ -43,13 +40,9 @@ public class AuthenticationController {
     @Autowired
     private UserRepository userRepository;
 
-
-
     public static final String TOKEN_PREFIX = "Bearer";
 
     public static final String HEADER_STRING = "Authorization";
-
-
 
     @PostMapping("/client/sign-up")
     public ResponseEntity<?> signupClient(@RequestBody SignupRequestDTO signupRequestDTO){
@@ -62,7 +55,6 @@ public class AuthenticationController {
         return new ResponseEntity<>(createdUser, HttpStatus.OK);
     }
 
-
     @PostMapping("/company/sign-up")
     public ResponseEntity<?> signupCompany(@RequestBody SignupRequestDTO signupRequestDTO){
         if (authService.presentByEmail(signupRequestDTO.getEmail())){
@@ -73,8 +65,6 @@ public class AuthenticationController {
 
         return new ResponseEntity<>(createdUser, HttpStatus.OK);
     }
-
-
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest) {
@@ -101,42 +91,4 @@ public class AuthenticationController {
 
         return ResponseEntity.ok(responseBody.toString());
     }
-
-
-//
-//    @PostMapping("/authenticate")
-//    public void createAuthenticationToken(@RequestBody AuthenticationRequest authenticationRequest,
-//                                          HttpServletResponse response) throws IOException, JSONException, java.io.IOException {
-//
-//
-//        try {
-//            authenticationManager.authenticate(
-//                    new UsernamePasswordAuthenticationToken(
-//                    authenticationRequest.getUsername(), authenticationRequest.getPassword()
-//            )
-//            );
-//        } catch (BadCredentialsException e){
-//            throw new BadCredentialsException("Incorrect username or password", e);
-//
-//        }
-//
-//        final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
-//
-//        final  String jwt = jwtUtil.generateToken(userDetails.getUsername());
-//        User user = userRepository.findFirstByEmail(authenticationRequest.getUsername());
-//
-//        response.getWriter().write(new JSONObject()
-//                .put("userId", user.getId())
-//                .put("role", user.getRole())
-//                .toString()
-//        );
-//
-//        response.addHeader("Access-Control-Expose-Headers", "Authorization");
-//        response.addHeader("Access-Control-Allow-Headers", "Authorization" +
-//                "X-PINGOTHER, Origin, X-Requested-With, Content-Type, Accept, X-Custom-header");
-//
-//        response.addHeader(HEADER_STRING, TOKEN_PREFIX + " " + jwt);
-//
-//    }
-
 }
