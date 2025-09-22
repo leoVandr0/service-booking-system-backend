@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "ads")
@@ -29,6 +30,7 @@ public class Ad {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore  // Prevent circular reference during JSON serialization
     private User user;
 
 
@@ -39,7 +41,14 @@ public class Ad {
         adDTO.setServiceName(serviceName);
         adDTO.setDescription(description);
         adDTO.setPrice(price);
-        adDTO.setCompanyName(user.getName());
+        
+        // Handle potential null user to prevent NPE
+        if (user != null) {
+            adDTO.setCompanyName(user.getName());
+        } else {
+            adDTO.setCompanyName("Unknown Company");
+        }
+        
         adDTO.setReturnedImg(img);
 
         return adDTO;

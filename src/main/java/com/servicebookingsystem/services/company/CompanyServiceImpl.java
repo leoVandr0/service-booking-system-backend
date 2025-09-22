@@ -8,6 +8,7 @@ import com.servicebookingsystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -24,36 +25,69 @@ public class CompanyServiceImpl implements CompanyService {
 
 
     public boolean postAd(Long userId, AdDTO adDTO) throws IOException {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        
+        if (adDTO == null) {
+            throw new IllegalArgumentException("Ad data cannot be null");
+        }
+        
+        if (adDTO.getServiceName() == null || adDTO.getServiceName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Service name is required");
+        }
+        
+        if (adDTO.getDescription() == null || adDTO.getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Description is required");
+        }
+        
+        if (adDTO.getPrice() == null || adDTO.getPrice() <= 0) {
+            throw new IllegalArgumentException("Valid price is required");
+        }
+
         Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isPresent()) {
-            Ad ad = new Ad();
-            ad.setServiceName(adDTO.getServiceName());
-            ad.setDescription(adDTO.getDescription());
-            if (adDTO.getImg() != null) {
-                ad.setImg(adDTO.getImg().getBytes());
-            } else {
-                // If image is required, return false to signal validation failure to controller
-                return false;
-            }
-            ad.setPrice(adDTO.getPrice());
-            ad.setUser(optionalUser.get());
+        if (optionalUser.isEmpty()) {
+            throw new EntityNotFoundException("User with ID " + userId + " not found");
+        }
+        
+        Ad ad = new Ad();
+        ad.setServiceName(adDTO.getServiceName().trim());
+        ad.setDescription(adDTO.getDescription().trim());
+        ad.setPrice(adDTO.getPrice());
+        ad.setUser(optionalUser.get());
+        
+        if (adDTO.getImg() != null) {
+            ad.setImg(adDTO.getImg().getBytes());
+        } else {
+            // If image is required, throw exception instead of returning false
+            throw new IllegalArgumentException("Image is required for ad creation");
+        }
 
-
+        try {
             adRepository.save(ad);
             return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save ad: " + e.getMessage(), e);
         }
-        return false;
     }
 
 
     public List<AdDTO> getAllAds(Long userId){
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        
         return adRepository.findAllByUserId(userId).stream().map(Ad::getAdDto).collect(Collectors.toList());
     }
 
     @Override
     public AdDTO getAdById(Long adId) {
+        if (adId == null) {
+            throw new IllegalArgumentException("Ad ID cannot be null");
+        }
+        
         return adRepository.findById(adId)
                 .map(Ad::getAdDto)
-                .orElse(null);
+                .orElseThrow(() -> new EntityNotFoundException("Ad with ID " + adId + " not found"));
     }
 }
