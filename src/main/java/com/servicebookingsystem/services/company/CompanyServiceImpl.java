@@ -29,7 +29,12 @@ public class CompanyServiceImpl implements CompanyService {
             Ad ad = new Ad();
             ad.setServiceName(adDTO.getServiceName());
             ad.setDescription(adDTO.getDescription());
-            ad.setImg(adDTO.getImg().getBytes());
+            if (adDTO.getImg() != null) {
+                ad.setImg(adDTO.getImg().getBytes());
+            } else {
+                // If image is required, return false to signal validation failure to controller
+                return false;
+            }
             ad.setPrice(adDTO.getPrice());
             ad.setUser(optionalUser.get());
 
@@ -45,22 +50,10 @@ public class CompanyServiceImpl implements CompanyService {
         return adRepository.findAllByUserId(userId).stream().map(Ad::getAdDto).collect(Collectors.toList());
     }
 
+    @Override
+    public AdDTO getAdById(Long adId) {
+        return adRepository.findById(adId)
+                .map(Ad::getAdDto)
+                .orElse(null);
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
